@@ -1,9 +1,10 @@
 [theme]
-base = "light"
-primaryColor = "#F59E0B"          # Solar turuncu
-textColor = "#0F172A"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F1F5F9"
+base = "dark"
+primaryColor = "#F59E0B"            # Solar turuncu
+backgroundColor = "#081129"         # gece laciverti
+secondaryBackgroundColor = "#111D44"
+textColor = "#E2E8F0"
+font = "sans serif"
 
 [browser]
 gatherUsageStats = false

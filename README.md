@@ -4,6 +4,8 @@
 
 > Panelin ne kadar kirli olduğunu değil, ne kadar kaybettirdiğini söyler.
 
+**Canlı demo:** https://solarai-gaziantep.streamlit.app
+
 SolarAI bir güneş paneli fotoğrafından panelin durumunu (temiz, tozlu, kuş pisliği, kar, fiziksel hasar,
 elektriksel hasar) tahmin eder, bu durumun Gaziantep koşullarında kaç kWh ve kaç TL kaybettirdiğini hesaplar
 ve panelin ne zaman temizlenmesinin ekonomik olduğunu planlar.

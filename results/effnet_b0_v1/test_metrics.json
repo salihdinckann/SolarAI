@@ -1,0 +1,44 @@
+{
+  "best_epoch": 10,
+  "val_macro_f1": 0.8561830691915032,
+  "test_macro_f1": 0.8857225359665724,
+  "test_accuracy": 0.8739495798319328,
+  "per_class": {
+    "clean": {
+      "precision": 0.8571428571428571,
+      "recall": 0.8571428571428571,
+      "f1-score": 0.8571428571428571,
+      "support": 28.0
+    },
+    "dusty": {
+      "precision": 0.8461538461538461,
+      "recall": 0.8148148148148148,
+      "f1-score": 0.8301886792452831,
+      "support": 27.0
+    },
+    "bird_drop": {
+      "precision": 0.8695652173913043,
+      "recall": 0.8333333333333334,
+      "f1-score": 0.851063829787234,
+      "support": 24.0
+    },
+    "snow_covered": {
+      "precision": 0.9444444444444444,
+      "recall": 1.0,
+      "f1-score": 0.9714285714285714,
+      "support": 17.0
+    },
+    "physical_damage": {
+      "precision": 0.9,
+      "recall": 1.0,
+      "f1-score": 0.9473684210526315,
+      "support": 9.0
+    },
+    "electrical_damage": {
+      "precision": 0.8571428571428571,
+      "recall": 0.8571428571428571,
+      "f1-score": 0.8571428571428571,
+      "support": 14.0
+    }
+  }
+}

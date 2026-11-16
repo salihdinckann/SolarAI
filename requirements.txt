@@ -1,0 +1,12 @@
+# PyTorch + torchvision: GPU (CUDA 12.8) sürümü için önce şunu kurun:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+# Sonra:
+#   pip install -r requirements.txt
+torch>=2.3
+torchvision>=0.18
+timm>=1.0
+scikit-learn>=1.4
+pandas>=2.0
+numpy>=1.26
+pillow>=10.0
+matplotlib>=3.8

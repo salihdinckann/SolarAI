@@ -1,0 +1,13 @@
+# Streamlit Community Cloud için bağımlılıklar (yalnızca uygulamayı çalıştırmak için).
+# Bulutta GPU yok: PyTorch'un CPU sürümü kurulur (~200 MB; CUDA'lı sürüm ~2 GB ve bellek sınırını zorlar).
+# Eğitim için kök dizindeki requirements.txt kullanılır.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.3
+torchvision>=0.18
+timm>=1.0
+pandas>=2.0
+numpy>=1.26
+pillow>=10.0
+matplotlib>=3.8
+altair>=5.0
+streamlit>=1.46

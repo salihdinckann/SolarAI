@@ -1,4 +1,4 @@
-# effnet_b0_v1 — dondurulmuş sonuçlar (poster rakamları)
+# effnet_b0_v1 — dondurulmuş sonuçlar 
 
 - Tarih: 16 Kasım 2026
 - Model: EfficientNet-B0 (timm, ImageNet ön eğitimli), 224 px

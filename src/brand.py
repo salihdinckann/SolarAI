@@ -59,6 +59,50 @@ def mark_svg(dark: bool = False, size: int = 64) -> str:
             f'role="img" aria-label="SolarAI">{_mark(dark, stroke_w=6)}</svg>')
 
 
+def mark_png(size: int = 512, dark: bool = False):
+    """B1 işaretinin yüksek çözünürlüklü PNG'si (panel çizgileri dahil, şeffaf zemin)."""
+    from PIL import Image, ImageDraw
+
+    ss = 4
+    S = size * ss
+    k = S / 90
+    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    p = lambda *xy: [v * k for v in xy]  # noqa: E731
+    frame = WHITE if dark else NAVY
+    w = round(5.5 * k)
+
+    def rounded_corner(x0, y0, dx, dy):
+        """(x0,y0) köşesinden dx/dy yönlerine uzanan yuvarlatılmış L."""
+        r = 6
+        d.line(p(x0, y0 + dy * 18, x0, y0 + dy * r), fill=frame, width=w)
+        d.line(p(x0 + dx * r, y0, x0 + dx * 18, y0), fill=frame, width=w)
+        box = [min(x0, x0 + 2 * dx * r), min(y0, y0 + 2 * dy * r), max(x0, x0 + 2 * dx * r), max(y0, y0 + 2 * dy * r)]
+        start = {(1, 1): 180, (-1, 1): 270, (-1, -1): 0, (1, -1): 90}[(dx, dy)]
+        d.arc(p(*box), start, start + 90, fill=frame, width=w)
+        for x, y in ((x0, y0 + dy * 18), (x0 + dx * 18, y0)):
+            d.ellipse(p(x - 2.75, y - 2.75, x + 2.75, y + 2.75), fill=frame)
+
+    for x0, y0, dx, dy in ((8, 8, 1, 1), (82, 8, -1, 1), (82, 82, -1, -1), (8, 82, 1, -1)):
+        rounded_corner(x0, y0, dx, dy)
+
+    sun = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(sun)
+    sd.ellipse(p(24, 24, 66, 66), fill=ORANGE)
+    sd.rectangle(p(20, 47, 70, 70), fill=NAVY_DEEP if dark else NAVY)
+    for y in (55, 62):
+        sd.line(p(20, y, 70, y), fill=ORANGE, width=round(1.6 * k))
+    for x in (35, 45, 55):
+        sd.line(p(x, 47, x, 70), fill=ORANGE, width=round(1.6 * k))
+    mask = Image.new("L", (S, S), 0)
+    ImageDraw.Draw(mask).ellipse(p(24, 24, 66, 66), fill=255)
+    img.paste(sun, (0, 0), mask)
+    d.line(p(16, 45, 74, 45), fill=AMBER, width=round(2.5 * k))
+    for x in (16, 74):
+        d.ellipse(p(x - 1.25, 43.75, x + 1.25, 46.25), fill=AMBER)
+    return img.resize((size, size), Image.LANCZOS)
+
+
 def favicon_png(size: int = 128):
     """Tarayıcı sekmesi ikonu (PIL ile, metin yok). 4 kat büyük çizip küçültür (kenar yumuşatma)."""
     from PIL import Image, ImageDraw

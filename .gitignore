@@ -1,0 +1,25 @@
+# --- Python'un ürettiği dosyalar ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# --- Büyük veri: görüntüler GitHub'a gitmez ---
+data/raw/
+data/processed/
+
+# --- Eğitim çıktıları (model ağırlıkları büyük) ---
+outputs/
+*.pt
+*.pth
+
+# --- Gizli bilgiler: ASLA yükleme ---
+kaggle.json
+.env
+.streamlit/secrets.toml
+
+# --- Editör / sistem dosyaları ---
+.vscode/
+.ipynb_checkpoints/
+Thumbs.db
+.DS_Store

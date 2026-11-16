@@ -221,12 +221,27 @@ def cleaning_plan(kwp: float = DEFAULT_KWP, cost: float = DEFAULT_CLEANING_COST_
                                 "kayip_kwh": round(s.lost_kwh), "kayip_tl": round(s.lost_tl),
                                 "temizlik_tl": round(s.cleaning_tl), "toplam_tl": round(s.total_tl)}
                                for s in [opt, *others]])
+    days, r, _ = _daily_arrays(year, kwp, rates or MONTHLY_SOILING_RATE, pvgis)
     return {
         "intervals": monthly_intervals(**kw),
         "cleaning_days": opt.cleaning_days,
+        "daily": daily_soiling(days, r, [days.get_loc(d) for d in opt.cleaning_days]),
         "comparison": comparison,
         "saving_vs_monthly_tl": others[0].total_tl - opt.total_tl,
+        "saving_vs_never_tl": others[2].total_tl - opt.total_tl,
     }
+
+
+def daily_soiling(days: pd.DatetimeIndex, r: np.ndarray, cleaning_idx: list[int]) -> pd.DataFrame:
+    """Verilen temizlik günleriyle her günün kirlenme kaybı oranı (takvim ısı haritası için)."""
+    soil, cur, cleaned = np.zeros(len(days)), 0.0, set(cleaning_idx)
+    for i in range(len(days)):
+        if i in cleaned:
+            cur = 0.0
+        cur = min(cur + r[i], MAX_SOILING_LOSS)
+        soil[i] = cur
+    return pd.DataFrame({"date": days, "month": days.month, "day": days.day, "soiling": soil,
+                         "cleaning": [i in cleaned for i in range(len(days))]})
 
 
 def month_name_tr(m: int) -> str:

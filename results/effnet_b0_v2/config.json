@@ -1,0 +1,26 @@
+{
+  "model": "efficientnet_b0",
+  "img_size": 224,
+  "epochs": 25,
+  "batch_size": 32,
+  "lr": 0.0003,
+  "weight_decay": 0.0001,
+  "label_smoothing": 0.1,
+  "patience": 7,
+  "num_workers": 2,
+  "seed": 42,
+  "limit": 0,
+  "run": "effnet_b0_v2",
+  "device": "cuda",
+  "classes": [
+    "clean",
+    "dusty",
+    "bird_drop",
+    "snow_covered",
+    "physical_damage",
+    "electrical_damage"
+  ],
+  "n_train": 563,
+  "n_val": 114,
+  "n_test": 113
+}

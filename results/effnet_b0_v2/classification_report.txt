@@ -1,0 +1,12 @@
+                   precision    recall  f1-score   support
+
+            Temiz      0.806     0.962     0.877        26
+            Tozlu      0.960     0.923     0.941        26
+      Kuş pisliği      0.944     0.739     0.829        23
+              Kar      0.941     1.000     0.970        16
+   Fiziksel hasar      0.875     0.778     0.824         9
+Elektriksel hasar      0.857     0.923     0.889        13
+
+         accuracy                          0.894       113
+        macro avg      0.897     0.887     0.888       113
+     weighted avg      0.900     0.894     0.892       113

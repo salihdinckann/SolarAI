@@ -1,0 +1,94 @@
+{
+  "n": 66,
+  "accuracy": 0.758,
+  "per_class": {
+    "snow_covered": {
+      "n": 44,
+      "recall": 1.0,
+      "tahminler": {
+        "snow_covered": 44
+      }
+    },
+    "physical_damage": {
+      "n": 17,
+      "recall": 0.118,
+      "tahminler": {
+        "snow_covered": 5,
+        "bird_drop": 4,
+        "electrical_damage": 3,
+        "dusty": 3,
+        "physical_damage": 2
+      }
+    },
+    "electrical_damage": {
+      "n": 5,
+      "recall": 0.8,
+      "tahminler": {
+        "electrical_damage": 4,
+        "snow_covered": 1
+      }
+    }
+  },
+  "hasar_servis_uyarisi": "9/22",
+  "hasar_temiz_denen": 0,
+  "confusion_matrix": {
+    "labels": [
+      "clean",
+      "dusty",
+      "bird_drop",
+      "snow_covered",
+      "physical_damage",
+      "electrical_damage"
+    ],
+    "matrix": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        44,
+        0,
+        0
+      ],
+      [
+        0,
+        3,
+        4,
+        5,
+        2,
+        3
+      ],
+      [
+        0,
+        0,
+        0,
+        1,
+        0,
+        4
+      ]
+    ]
+  }
+}

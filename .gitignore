@@ -5,6 +5,8 @@ venv/
 
 data/raw/
 data/processed/
+data/external/
+data/lenarczyk/
 
 outputs/
 *.pt

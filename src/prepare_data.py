@@ -5,10 +5,13 @@ Adımlar:
   2. Bozuk/açılamayan görüntüleri eler.
   3. MD5 özetiyle birebir kopyaları bulur; her içerikten yalnızca bir tane tutar.
   4. Aynı içerik farklı sınıflarda geçiyorsa (çelişkili etiket) o görüntüyü tamamen çıkarır.
-  5. Sınıf oranlarını koruyarak %70 / %15 / %15 böler (seed sabit, tekrarlanabilir).
+  5. Algısal özet (dHash) ile YAKIN kopyaları bulur (yeniden boyutlanmış / yeniden sıkıştırılmış
+     aynı fotoğraf) ve bunları bir GRUP yapar. Yakın kopyası farklı sınıfta olan grup çıkarılır.
+  6. Grupları bölmez: bir gruptaki tüm görüntüler aynı bölmeye düşer (eğitim-test sızıntısı olmaz).
+     Sınıf oranları korunarak ~%70 / %15 / %15 bölünür (seed sabit, tekrarlanabilir).
 
 Çıktılar:
-  data/splits.csv          -> path, label, md5, split
+  data/splits.csv          -> path, label, md5, group, split
   data/data_report.csv     -> çıkarılan dosyalar ve nedenleri
 
 Çalıştırma (proje kök klasöründen):
@@ -21,9 +24,10 @@ import argparse
 import hashlib
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from PIL import Image
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedGroupKFold
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = ROOT / "data" / "raw" / "Faulty_solar_panel"
@@ -96,16 +100,76 @@ def deduplicate(df: pd.DataFrame, dropped: list[dict]) -> pd.DataFrame:
     return df[~dup_mask].reset_index(drop=True)
 
 
+def dhash(path: Path, size: int = 16) -> np.ndarray:
+    """Fark özeti (difference hash): görüntü küçültülüp gri yapılır, komşu pikseller
+    karşılaştırılır. Boyut/sıkıştırma değişse de aynı fotoğraf ~aynı bitleri verir."""
+    with Image.open(path) as im:
+        a = np.asarray(im.convert("L").resize((size + 1, size), Image.LANCZOS), dtype=np.int16)
+    return (a[:, 1:] > a[:, :-1]).ravel()
+
+
+def imagenet_embeddings(paths: list[str], hflip: bool = False) -> np.ndarray:
+    """Bizim veriyle HİÇ eğitilmemiş, ImageNet ağırlıklı EfficientNet'ten 1280 boyutlu,
+    birim uzunluklu öznitelik vektörü. Kırpma/boyut farkına dHash'ten çok daha dayanıklı."""
+    import timm
+    import torch
+
+    from common import eval_transform, load_rgb
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = timm.create_model("efficientnet_b0", pretrained=True, num_classes=0).to(device).eval()
+    tf = eval_transform(224)
+    out = []
+    with torch.no_grad():
+        for k in range(0, len(paths), 64):
+            x = torch.stack([tf(load_rgb(ROOT / p)) for p in paths[k:k + 64]]).to(device)
+            if hflip:
+                x = torch.flip(x, dims=[3])
+            out.append(torch.nn.functional.normalize(model(x), dim=1).cpu())
+    return torch.cat(out).numpy()
+
+
+def near_duplicate_groups(df: pd.DataFrame, max_dist: int, min_sim: float) -> np.ndarray:
+    """İki görüntü şu durumda aynı gruba girer (birleşim-bul / union-find ile, zincirleme):
+       - dHash Hamming mesafesi <= max_dist   (yeniden boyutlanmış / sıkıştırılmış kopya)
+       - VEYA ImageNet öznitelik kosinüs benzerliği >= min_sim (kırpılmış kopya, aynı çatının
+         art arda çekilmiş kareleri)"""
+    hashes = np.stack([dhash(ROOT / p) for p in df["path"]])
+    dist = (hashes[:, None, :] != hashes[None, :, :]).sum(-1)
+    emb = imagenet_embeddings(list(df["path"]))
+    sim = emb @ emb.T
+    linked = (dist <= max_dist) | (sim >= min_sim)
+    parent = list(range(len(df)))
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i, j in zip(*np.where(np.triu(linked, 1))):
+        parent[find(i)] = find(j)
+    roots = [find(i) for i in range(len(df))]
+    return pd.factorize(pd.Series(roots))[0]
+
+
+def drop_conflicting_groups(df: pd.DataFrame, dropped: list[dict]) -> pd.DataFrame:
+    labels_per_group = df.groupby("group")["label"].nunique()
+    bad = set(labels_per_group[labels_per_group > 1].index)
+    for r in df[df["group"].isin(bad)].itertuples():
+        dropped.append({"path": r.path, "label": r.label, "reason": "yakin_kopya_celiskili_etiket"})
+    return df[~df["group"].isin(bad)].reset_index(drop=True)
+
+
 def split(df: pd.DataFrame, val_frac: float, test_frac: float, seed: int) -> pd.DataFrame:
-    train_df, temp_df = train_test_split(
-        df, test_size=val_frac + test_frac, stratify=df["label"], random_state=seed
-    )
-    val_df, test_df = train_test_split(
-        temp_df,
-        test_size=test_frac / (val_frac + test_frac),
-        stratify=temp_df["label"],
-        random_state=seed,
-    )
+    """Grup korumalı, sınıf oranlı bölme: önce test, sonra kalan içinden val ayrılır."""
+    def carve(d: pd.DataFrame, frac: float) -> tuple[pd.DataFrame, pd.DataFrame]:
+        sgkf = StratifiedGroupKFold(n_splits=round(1 / frac), shuffle=True, random_state=seed)
+        rest_idx, part_idx = next(sgkf.split(d, d["label"], d["group"]))
+        return d.iloc[rest_idx], d.iloc[part_idx]
+
+    rest, test_df = carve(df, test_frac)
+    train_df, val_df = carve(rest, val_frac / (1 - test_frac))
     return pd.concat(
         [train_df.assign(split="train"), val_df.assign(split="val"), test_df.assign(split="test")]
     ).sort_values(["split", "label", "path"]).reset_index(drop=True)
@@ -116,6 +180,10 @@ def main() -> None:
     ap.add_argument("--val", type=float, default=0.15)
     ap.add_argument("--test", type=float, default=0.15)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--near-dup-dist", type=int, default=12,
+                    help="dHash Hamming mesafesi (0-256) bu değere eşit/küçükse yakın kopya sayılır")
+    ap.add_argument("--near-dup-sim", type=float, default=0.88,
+                    help="ImageNet öznitelik kosinüs benzerliği bu değere eşit/büyükse yakın kopya sayılır")
     args = ap.parse_args()
 
     if not RAW_DIR.exists():
@@ -124,7 +192,13 @@ def main() -> None:
     df, dropped = scan(RAW_DIR)
     print(f"Okunan görüntü: {len(df)}")
     df = deduplicate(df, dropped)
+    df["group"] = near_duplicate_groups(df, args.near_dup_dist, args.near_dup_sim)
+    df = drop_conflicting_groups(df, dropped)
+    sizes = df["group"].value_counts()
+    print(f"Yakın kopya grubu (2+ görüntü): {(sizes > 1).sum()}, toplam grup: {len(sizes)}, "
+          f"en büyük grup: {sizes.max()} görüntü")
     out = split(df, args.val, args.test, args.seed)
+    assert out.groupby("group")["split"].nunique().max() == 1, "Bir grup birden fazla bölmeye düştü!"
 
     OUT_SPLITS.parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(OUT_SPLITS, index=False)

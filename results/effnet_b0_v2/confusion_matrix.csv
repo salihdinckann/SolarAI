@@ -1,0 +1,7 @@
+,Temiz,Tozlu,Kuş pisliği,Kar,Fiziksel hasar,Elektriksel hasar
+Temiz,25,1,0,0,0,0
+Tozlu,2,24,0,0,0,0
+Kuş pisliği,2,0,17,1,1,2
+Kar,0,0,0,16,0,0
+Fiziksel hasar,1,0,1,0,7,0
+Elektriksel hasar,1,0,0,0,0,12

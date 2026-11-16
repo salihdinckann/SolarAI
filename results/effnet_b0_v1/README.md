@@ -19,3 +19,7 @@ Not: Test kümesi küçüktür (119 görüntü). Sonuçlar gösterge niteliğind
 
 Model ağırlıkları (`best.pt`, ~16 MB) depoda değil, yerelde `outputs/effnet_b0_v1/best.pt` dosyasında duruyor.
 SHA-256 (ilk 16 karakter): `1e6d01776c1a41b7`
+
+> ⚠️ **Geçersiz kılındı → `effnet_b0_v2` kullanın.** Bu koşunun bölmesinde (`splits_v1.csv`) yakın kopya sızıntısı
+> bulundu: 119 test görüntüsünün 13'ünün eğitimde neredeyse aynısı vardı (model bu 13'ün hepsini doğru bildi).
+> Sızıntısız 106 görüntüde macro-F1 0.870. Karşılaştırma için saklanıyor.

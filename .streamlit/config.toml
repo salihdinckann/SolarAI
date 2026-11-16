@@ -1,0 +1,9 @@
+[theme]
+base = "light"
+primaryColor = "#F59E0B"          # Solar turuncu
+textColor = "#0F172A"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F1F5F9"
+
+[browser]
+gatherUsageStats = false

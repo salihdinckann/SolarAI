@@ -20,3 +20,6 @@ kaggle.json
 .ipynb_checkpoints/
 Thumbs.db
 .DS_Store
+
+app/examples/
+.claude/
